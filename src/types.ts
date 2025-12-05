@@ -14,6 +14,7 @@ export interface HttpRequest {
 	url: string;
 	headers: KeyValuePair[];
 	params: KeyValuePair[];
+	cookies: KeyValuePair[];
 	bodyType: 'none' | 'json' | 'text';
 	body: string;
 }
@@ -23,6 +24,7 @@ export interface HttpResponse {
 	time: number; // ms
 	size: number; // bytes
 	headers: Record<string, string>;
+	cookies: Record<string, string>;
 	body: any;
 	contentType: string;
 }
@@ -78,5 +80,6 @@ export interface TauriRequestPayload {
 	method: string;
 	url: string;
 	headers: Record<string, string>;
+	cookies?: Record<string, string>;
 	body?: string;
 }

@@ -14,6 +14,7 @@ pub struct RequestPayload {
     method: String,
     url: String,
     headers: std::collections::HashMap<String, String>,
+    cookies: Option<std::collections::HashMap<String, String>>,
     body: Option<String>,
 }
 
@@ -24,6 +25,7 @@ pub struct HttpResponse {
     time: u64,
     size: usize,
     headers: std::collections::HashMap<String, String>,
+    cookies: std::collections::HashMap<String, String>,
     body: serde_json::Value,
     #[serde(rename = "contentType")]
     content_type: String,
@@ -43,6 +45,18 @@ async fn http_request(payload: RequestPayload) -> Result<HttpResponse, String> {
     // Agregar headers
     for (key, value) in payload.headers {
         request = request.header(key, value);
+    }
+
+    // Agregar cookies como header Cookie si existen
+    if let Some(cookies) = payload.cookies {
+        if !cookies.is_empty() {
+            let cookie_string: String = cookies
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<_>>()
+                .join("; ");
+            request = request.header("Cookie", cookie_string);
+        }
     }
 
     // Agregar body si existe
@@ -68,6 +82,20 @@ async fn http_request(payload: RequestPayload) -> Result<HttpResponse, String> {
         .cloned()
         .unwrap_or_else(|| "text/plain".to_string());
 
+    // Extraer cookies del header Set-Cookie
+    let mut cookies_map: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+    if let Some(set_cookie) = headers_map.get("set-cookie") {
+        // Parsear cookies del header Set-Cookie
+        for cookie_str in set_cookie.split(',') {
+            if let Some(cookie_pair) = cookie_str.split(';').next() {
+                if let Some((name, value)) = cookie_pair.split_once('=') {
+                    cookies_map.insert(name.trim().to_string(), value.trim().to_string());
+                }
+            }
+        }
+    }
+
     let body_text = response
         .text()
         .await
@@ -87,6 +115,7 @@ async fn http_request(payload: RequestPayload) -> Result<HttpResponse, String> {
         time,
         size,
         headers: headers_map,
+        cookies: cookies_map,
         body: body_json,
         content_type,
     })

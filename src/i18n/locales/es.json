@@ -1,0 +1,130 @@
+{
+	"app": {
+		"title": "Getty",
+		"settings": "Configuración"
+	},
+	"request": {
+		"method": "Método",
+		"url": "URL",
+		"send": "Enviar",
+		"sending": "Enviando...",
+		"save": "Guardar",
+		"newRequest": "Nueva Petición",
+		"copyCurl": "Copiar como cURL",
+		"importCurl": "Importar cURL",
+		"pasteCurl": "Pega el comando cURL:"
+	},
+	"tabs": {
+		"params": "Parámetros",
+		"headers": "Encabezados",
+		"cookies": "Cookies",
+		"body": "Cuerpo"
+	},
+	"response": {
+		"title": "Respuesta",
+		"noResponse": "Sin respuesta aún.",
+		"error": "Petición Fallida",
+		"copy": "Copiar",
+		"copied": "¡Copiado!",
+		"body": "Cuerpo",
+		"preview": "Vista Previa"
+	},
+	"environment": {
+		"title": "Entorno",
+		"noEnvironment": "Sin Entorno",
+		"global": "Global",
+		"collection": "Colección",
+		"configure": "Configura uno para usar variables",
+		"available": "Entornos disponibles"
+	},
+	"settings": {
+		"title": "Configuración General",
+		"subtitle": "Configura temas, apariencia y preferencias predeterminadas.",
+		"exportConfig": "Exportar Config",
+		"visualEditor": "Editor Visual",
+		"jsonEditor": "Editor JSON",
+		"appearance": "Apariencia",
+		"activeTheme": "Tema Activo",
+		"active": "Activo",
+		"customize": "Personalizar",
+		"colors": "Colores",
+		"showEditor": "Mostrar Editor",
+		"hideEditor": "Ocultar Editor",
+		"tip": "Consejo",
+		"tipText": "Cambia al Editor JSON para agregar nuevos temas o hacer modificaciones avanzadas. También puedes exportar tu configuración para compartirla con otros.",
+		"done": "Listo",
+		"cancel": "Cancelar",
+		"apply": "Aplicar Cambios",
+		"editJson": "Edita el JSON a continuación para gestionar temas. Puedes agregar nuevos temas a la lista.",
+		"language": "Idioma",
+		"selectLanguage": "Seleccionar Idioma"
+	},
+	"sidebar": {
+		"workspace": "Espacio de Trabajo",
+		"collections": "Colecciones",
+		"newCollection": "Nueva Colección",
+		"newRequest": "Nueva Petición"
+	},
+	"common": {
+		"name": "Nombre",
+		"value": "Valor",
+		"key": "Clave",
+		"enabled": "Habilitado",
+		"addRow": "Agregar Fila",
+		"delete": "Eliminar",
+		"edit": "Editar",
+		"close": "Cerrar",
+		"save": "Guardar",
+		"cancel": "Cancelar"
+	},
+	"toast": {
+		"curlCopied": "¡cURL copiado al portapapeles!",
+		"savedChanges": "Cambios guardados en",
+		"requestSaved": "¡Petición guardada exitosamente!",
+		"selectCollection": "Por favor selecciona una colección.",
+		"envCreated": "¡Entorno creado exitosamente!",
+		"envDeleted": "¡Entorno eliminado exitosamente!",
+		"curlImported": "¡cURL importado exitosamente!",
+		"invalidCurl": "Comando cURL inválido"
+	},
+	"modals": {
+		"newEnvironment": "Nuevo Entorno",
+		"deleteEnvironment": "Eliminar Entorno",
+		"environmentName": "Nombre del Entorno",
+		"create": "Crear",
+		"delete": "Eliminar",
+		"cancel": "Cancelar",
+		"deleteConfirm": "¿Estás seguro de que quieres eliminar el entorno",
+		"deleteWarning": "Esta acción no se puede deshacer.",
+		"importCurl": "Importar cURL",
+		"importCurlPlaceholder": "curl -X GET https://api.example.com/users",
+		"importCurlHelp": "Pega un comando cURL y se convertirá en una petición",
+		"import": "Importar",
+		"saveRequest": "Guardar Petición",
+		"requestName": "Nombre de la Petición",
+		"selectProject": "Seleccionar Proyecto",
+		"selectCollection": "Seleccionar Colección",
+		"chooseCollection": "-- Elegir Colección --",
+		"noCollections": "No hay colecciones en este proyecto.",
+		"save": "Guardar"
+	},
+	"environmentManager": {
+		"title": "Gestionar Entornos",
+		"newEnv": "+ Nuevo Entorno",
+		"active": "Activo",
+		"setActive": "Activar",
+		"delete": "Eliminar",
+		"variables": "Variables",
+		"sharedHeaders": "Encabezados Compartidos",
+		"selectEnvironment": "Selecciona un entorno",
+		"variablesHelp": "Variables globales disponibles en todas las colecciones.",
+		"headersHelp": "Encabezados globales que se agregarán a todas las peticiones."
+	},
+	"collectionPanel": {
+		"title": "Configura entornos y variables para esta colección.",
+		"backToRequests": "Volver a Peticiones",
+		"noEnvironments": "No hay entornos configurados.",
+		"createFirst": "Crea tu primer entorno para comenzar.",
+		"selectTab": "Selecciona o crea una pestaña para configurar variables."
+	}
+}

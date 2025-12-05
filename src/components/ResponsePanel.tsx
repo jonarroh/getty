@@ -3,12 +3,14 @@ import { useRequestStore, useCollectionStore, useEnvStore } from '../store';
 import Editor from '@monaco-editor/react';
 import clsx from 'clsx';
 import { Globe, Clock, Database, AlertCircle, Copy, ChevronDown, ChevronUp, Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const ResponsePanel: React.FC = () => {
   const { response, error, loading, isResponseDrawerOpen, setResponseDrawerOpen } = useRequestStore();
   const { activeCollectionId, collections } = useCollectionStore();
   const { environments, activeEnvId } = useEnvStore();
-  const [view, setView] = useState<'json' | 'headers' | 'preview'>('json');
+  const [view, setView] = useState<'json' | 'headers' | 'cookies' | 'preview'>('json');
+  const { t } = useTranslation();
 
   // Get active environment name
   const getActiveEnvName = () => {
@@ -34,7 +36,7 @@ export const ResponsePanel: React.FC = () => {
     const btn = document.getElementById('copy-response-btn');
     if (btn) {
       const originalText = btn.innerHTML;
-      btn.innerHTML = '<span class="text-green-400">Copied!</span>';
+      btn.innerHTML = `<span class="text-green-400">${t('response.copied')}</span>`;
       setTimeout(() => btn.innerHTML = originalText, 1500);
     }
   };
@@ -44,7 +46,7 @@ export const ResponsePanel: React.FC = () => {
       <div className="h-full w-full flex items-center justify-center bg-surface border-t border-slate-700">
         <div className="flex flex-col items-center gap-2">
           <div className="animate-spin w-5 h-5 border-2 border-slate-700 border-t-primary rounded-full"></div>
-          <p className="text-xs text-slate-400 animate-pulse">Sending...</p>
+          <p className="text-xs text-slate-400 animate-pulse">{t('request.sending')}</p>
         </div>
       </div>
     );
@@ -58,7 +60,7 @@ export const ResponsePanel: React.FC = () => {
         className="h-full flex items-center justify-between px-4 bg-background border-t border-slate-700 cursor-pointer hover:bg-slate-800 transition-colors"
       >
         <div className="flex items-center gap-4 text-xs font-bold text-slate-400">
-          <span className="uppercase">Response</span>
+          <span className="uppercase">{t('response.title')}</span>
           {response ? (
             <span className={clsx(response.statusCode >= 200 && response.statusCode < 300 ? "text-green-400" : "text-red-400")}>
               {response.statusCode} {response.statusCode >= 200 && response.statusCode < 300 ? 'OK' : 'Error'}
@@ -78,11 +80,11 @@ export const ResponsePanel: React.FC = () => {
     return (
       <div className="h-full flex flex-col bg-surface border-t border-slate-700">
         <div className="p-2 border-b border-slate-700 flex justify-between items-center bg-background">
-          <span className="text-danger font-bold text-sm flex items-center gap-2"><AlertCircle size={14} /> Error</span>
+          <span className="text-danger font-bold text-sm flex items-center gap-2"><AlertCircle size={14} /> {t('response.error')}</span>
           <button onClick={() => setResponseDrawerOpen(false)}><ChevronDown size={16} className="text-slate-400 hover:text-white" /></button>
         </div>
         <div className="flex flex-col items-center justify-center h-full text-danger gap-4 p-8 text-center">
-          <h3 className="text-lg font-bold">Request Failed</h3>
+          <h3 className="text-lg font-bold">{t('response.error')}</h3>
           <p className="text-slate-400 bg-background p-4 rounded border border-slate-700 text-sm font-mono">{error}</p>
         </div>
       </div>
@@ -93,12 +95,12 @@ export const ResponsePanel: React.FC = () => {
     return (
       <div className="h-full flex flex-col bg-surface border-t border-slate-700">
         <div className="p-2 border-b border-slate-700 flex justify-between items-center bg-background">
-          <span className="text-slate-500 font-bold text-xs uppercase">Response</span>
+          <span className="text-slate-500 font-bold text-xs uppercase">{t('response.title')}</span>
           <button onClick={() => setResponseDrawerOpen(false)}><ChevronDown size={16} className="text-slate-400 hover:text-white" /></button>
         </div>
         <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-2">
           <Globe size={32} strokeWidth={1} />
-          <p className="text-sm">No response yet.</p>
+          <p className="text-sm">{t('response.noResponse')}</p>
         </div>
       </div>
     );
@@ -134,7 +136,7 @@ export const ResponsePanel: React.FC = () => {
             className="text-xs flex items-center gap-1 text-slate-400 hover:text-white transition-colors"
             title="Copy Response Body"
           >
-            <Copy size={12} /> Copy
+            <Copy size={12} /> {t('response.copy')}
           </button>
           <div className="h-4 w-[1px] bg-slate-700"></div>
           <button onClick={() => setResponseDrawerOpen(false)} title="Close Drawer" className="text-slate-400 hover:text-white">
@@ -145,10 +147,17 @@ export const ResponsePanel: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex border-b border-slate-700 px-4 gap-4 bg-surface shrink-0">
-        <button onClick={() => setView('json')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'json' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>Body</button>
-        <button onClick={() => setView('headers')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'headers' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>Headers</button>
+        <button onClick={() => setView('json')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'json' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>{t('response.body')}</button>
+        <button onClick={() => setView('headers')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'headers' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>
+          {t('tabs.headers')}
+          {response.headers && Object.keys(response.headers).length > 0 && <span className="ml-2 text-xs bg-slate-700 px-1.5 rounded-full">{Object.keys(response.headers).length}</span>}
+        </button>
+        <button onClick={() => setView('cookies')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'cookies' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>
+          {t('tabs.cookies')}
+          {response.cookies && Object.keys(response.cookies).length > 0 && <span className="ml-2 text-xs bg-slate-700 px-1.5 rounded-full">{Object.keys(response.cookies).length}</span>}
+        </button>
         {response.contentType.includes('html') && (
-          <button onClick={() => setView('preview')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'preview' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>Preview</button>
+          <button onClick={() => setView('preview')} className={clsx("py-2 text-xs font-bold border-b-2 uppercase tracking-wide", view === 'preview' ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>{t('response.preview')}</button>
         )}
       </div>
 
@@ -182,6 +191,25 @@ export const ResponsePanel: React.FC = () => {
                 <div className="col-span-2 text-primary truncate font-mono" title={String(v)}>{String(v)}</div>
               </div>
             ))}
+          </div>
+        )}
+
+        {view === 'cookies' && (
+          <div className="p-4 overflow-y-auto h-full text-sm">
+            <div className="grid grid-cols-3 gap-2 font-bold text-slate-500 mb-2 pb-2 border-b border-slate-700 text-xs uppercase">
+              <div className="col-span-1">Name</div>
+              <div className="col-span-2">Value</div>
+            </div>
+            {response.cookies && Object.keys(response.cookies).length > 0 ? (
+              Object.entries(response.cookies).map(([k, v]) => (
+                <div key={k} className="grid grid-cols-3 gap-2 py-1 border-b border-slate-800 last:border-0 text-xs">
+                  <div className="col-span-1 text-slate-300 truncate font-mono" title={k}>{k}</div>
+                  <div className="col-span-2 text-primary truncate font-mono" title={String(v)}>{String(v)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-slate-500 py-8">No cookies received</div>
+            )}
           </div>
         )}
 

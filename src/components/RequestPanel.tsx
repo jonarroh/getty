@@ -7,6 +7,8 @@ import { HttpMethod } from '../types';
 import clsx from 'clsx';
 import { requestToCurl, curlToRequest } from '../utils/curl';
 import { SaveRequestModal } from './SaveRequestModal';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 const methods: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
@@ -19,11 +21,23 @@ export const RequestPanel: React.FC = () => {
     setUrl,
     setHeaders,
     setParams,
+    setCookies,
     setBody,
     loadRequest,
     activeTab,
     setActiveTab
   } = useRequestStore();
+  const { t } = useTranslation();
+
+  // Estado local para el body del editor (evita re-renders constantes)
+  const [localBody, setLocalBody] = React.useState(activeRequest.body);
+  const [showImportCurlModal, setShowImportCurlModal] = React.useState(false);
+  const [curlInput, setCurlInput] = React.useState('');
+
+  // Sincronizar el estado local cuando cambia el activeRequest (ej: al cargar otro request)
+  React.useEffect(() => {
+    setLocalBody(activeRequest.body);
+  }, [activeRequest.id]);
 
   const { updateSavedRequest, savedRequests, activeCollectionId, collections, setCollectionActiveEnv } = useCollectionStore();
   const { environments, activeEnvId, setActiveEnv } = useEnvStore();
@@ -83,31 +97,91 @@ export const RequestPanel: React.FC = () => {
   const handleCopyCurl = () => {
     const curl = requestToCurl(activeRequest);
     navigator.clipboard.writeText(curl);
-    alert('cURL copied to clipboard!');
+    toast.success(t('toast.curlCopied'));
   };
 
   const handleImportCurl = () => {
-    const curl = prompt("Paste cURL command:");
-    if (curl) {
-      const parsed = curlToRequest(curl);
-      loadRequest({ ...activeRequest, ...parsed });
+    setShowImportCurlModal(true);
+    setCurlInput('');
+  };
+
+  const handleImportCurlConfirm = () => {
+    if (curlInput.trim()) {
+      try {
+        const parsed = curlToRequest(curlInput.trim());
+        loadRequest({ ...activeRequest, ...parsed });
+        toast.success(t('toast.curlImported'));
+        setShowImportCurlModal(false);
+        setCurlInput('');
+      } catch (error) {
+        toast.error(t('toast.invalidCurl'));
+      }
     }
   };
 
   const handleSaveClick = () => {
-    if (activeRequest.id && activeRequest.id !== 'temp' && savedRequests[activeRequest.id]) {
-      // Already saved, update directly
-      updateSavedRequest(activeRequest);
-      alert(`Saved changes to "${activeRequest.name}"`);
-    } else {
-      // New request, open modal
-      setSaveModalOpen(true);
-    }
+    // Primero sincronizar el body local con el store
+    setBody(localBody);
+
+    // Pequeño delay para asegurar que el estado se actualice
+    setTimeout(() => {
+      const currentRequest = useRequestStore.getState().activeRequest;
+      if (currentRequest.id && currentRequest.id !== 'temp' && savedRequests[currentRequest.id]) {
+        // Already saved, update directly
+        updateSavedRequest(currentRequest);
+        toast.success(`${t('toast.savedChanges')} "${currentRequest.name}"`);
+      } else {
+        // New request, open modal
+        setSaveModalOpen(true);
+      }
+    }, 50);
   };
 
   return (
     <div className="flex flex-col h-full bg-background">
       <SaveRequestModal isOpen={saveModalOpen} onClose={() => setSaveModalOpen(false)} />
+
+      {/* Import cURL Modal */}
+      {showImportCurlModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-surface border border-slate-700 w-full max-w-2xl rounded-lg shadow-xl overflow-hidden">
+            <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-background">
+              <h3 className="text-lg font-bold">{t('modals.importCurl')}</h3>
+              <button onClick={() => setShowImportCurlModal(false)} className="text-slate-400 hover:text-white">
+                <Import size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-medium text-slate-300 mb-2">{t('request.pasteCurl')}</label>
+              <textarea
+                value={curlInput}
+                onChange={(e) => setCurlInput(e.target.value)}
+                placeholder={t('modals.importCurlPlaceholder')}
+                className="w-full bg-background border border-slate-600 rounded px-3 py-2 text-sm text-white focus:border-primary focus:outline-none font-mono h-32 resize-none"
+                autoFocus
+              />
+              <p className="text-xs text-slate-400 mt-2">
+                {t('modals.importCurlHelp')}
+              </p>
+            </div>
+            <div className="p-4 bg-background/50 border-t border-slate-700 flex justify-end gap-2">
+              <button
+                onClick={() => setShowImportCurlModal(false)}
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white"
+              >
+                {t('modals.cancel')}
+              </button>
+              <button
+                onClick={handleImportCurlConfirm}
+                disabled={!curlInput.trim()}
+                className="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {t('modals.import')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Environment Indicator */}
       <div className={clsx(
@@ -118,7 +192,7 @@ export const RequestPanel: React.FC = () => {
       )}>
         <div className="flex items-center gap-2">
           <Layers size={14} />
-          <span className="font-medium">Environment:</span>
+          <span className="font-medium">{t('environment.title')}:</span>
           <button
             onClick={() => setShowEnvDropdown(!showEnvDropdown)}
             className="font-bold hover:opacity-80 transition-opacity flex items-center gap-1"
@@ -126,9 +200,9 @@ export const RequestPanel: React.FC = () => {
             {envInfo.name}
             <span className="text-xs">▼</span>
           </button>
-          {envInfo.type === 'collection' && <span className="text-xs opacity-60">(Collection)</span>}
-          {envInfo.type === 'global' && <span className="text-xs opacity-60">(Global)</span>}
-          {envInfo.type === 'none' && <span className="text-xs opacity-60">⚠️ Configure uno para usar variables</span>}
+          {envInfo.type === 'collection' && <span className="text-xs opacity-60">({t('environment.collection')})</span>}
+          {envInfo.type === 'global' && <span className="text-xs opacity-60">({t('environment.global')})</span>}
+          {envInfo.type === 'none' && <span className="text-xs opacity-60">⚠️ {t('environment.configure')}</span>}
         </div>
 
         {/* Dropdown */}
@@ -186,42 +260,47 @@ export const RequestPanel: React.FC = () => {
         </div>
 
         <button
-          onClick={sendRequest}
+          onClick={() => {
+            // Sincronizar el body antes de enviar
+            setBody(localBody);
+            setTimeout(() => sendRequest(), 10);
+          }}
           disabled={loading}
           className="bg-primary hover:bg-blue-600 text-white px-6 rounded font-bold flex items-center gap-2 disabled:opacity-50 transition-colors"
         >
-          {loading ? 'Sending...' : <><Play size={16} fill="currentColor" /> Send</>}
+          {loading ? t('request.sending') : <><Play size={16} fill="currentColor" /> {t('request.send')}</>}
         </button>
 
         <button
           onClick={handleSaveClick}
           className="bg-slate-700 hover:bg-slate-600 text-white px-4 rounded font-bold flex items-center gap-2 transition-colors"
-          title="Save Request"
+          title={t('request.save')}
         >
-          <Save size={16} /> Save
+          <Save size={16} /> {t('request.save')}
         </button>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={handleCopyCurl} title="Copy as cURL" className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded"><Copy size={18} /></button>
-          <button onClick={handleImportCurl} title="Import cURL" className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded"><Import size={18} /></button>
+          <button onClick={handleCopyCurl} title={t('request.copyCurl')} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded"><Copy size={18} /></button>
+          <button onClick={handleImportCurl} title={t('request.importCurl')} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded"><Import size={18} /></button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex border-b border-slate-700 px-4 gap-6">
-        {['params', 'headers', 'body'].map(tab => (
+        {['params', 'headers', 'cookies', 'body'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
             className={clsx(
-              "py-3 text-sm font-medium border-b-2 transition-colors capitalize",
+              "py-3 text-sm font-medium border-b-2 transition-colors",
               activeTab === tab
                 ? "border-primary text-primary"
                 : "border-transparent text-slate-400 hover:text-slate-200"
             )}
           >
-            {tab}
+            {t(`tabs.${tab}`)}
             {tab === 'headers' && activeRequest.headers.length > 0 && <span className="ml-2 text-xs bg-slate-700 px-1.5 rounded-full">{activeRequest.headers.length}</span>}
+            {tab === 'cookies' && activeRequest.cookies?.length > 0 && <span className="ml-2 text-xs bg-slate-700 px-1.5 rounded-full">{activeRequest.cookies.length}</span>}
           </button>
         ))}
       </div>
@@ -234,6 +313,10 @@ export const RequestPanel: React.FC = () => {
 
         {activeTab === 'headers' && (
           <KeyValueEditor items={activeRequest.headers} onChange={setHeaders} />
+        )}
+
+        {activeTab === 'cookies' && (
+          <KeyValueEditor items={activeRequest.cookies || []} onChange={setCookies} />
         )}
 
         {activeTab === 'body' && (
@@ -251,8 +334,8 @@ export const RequestPanel: React.FC = () => {
                 height="100%"
                 defaultLanguage="json"
                 theme="vs-dark"
-                value={activeRequest.body}
-                onChange={(val) => setBody(val || '')}
+                value={localBody}
+                onChange={(val) => setLocalBody(val || '')}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 13,

@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCollectionStore, useRequestStore } from '../store';
-import { Plus, ChevronRight, ChevronDown, Archive, Settings, Briefcase, Trash2, X, Check, UploadCloud } from 'lucide-react';
+import { Plus, ChevronRight, ChevronDown, Archive, Settings, Briefcase, Trash2, X, Check, UploadCloud, Edit2 } from 'lucide-react';
 import clsx from 'clsx';
+import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 
 export const Sidebar: React.FC = () => {
+  const { t } = useTranslation();
   const {
     projects,
     collections,
     savedRequests,
     createProject,
+    updateProject,
     createCollection,
+    updateCollection,
     openCollectionSettings,
     deleteProject,
     deleteCollection,
@@ -30,6 +35,15 @@ export const Sidebar: React.FC = () => {
   const [creatingCollectionIn, setCreatingCollectionIn] = useState<string | null>(null);
   const [newCollectionName, setNewCollectionName] = useState('');
   const [newCollectionColor, setNewCollectionColor] = useState('#34d399');
+
+  // Rename states
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState('');
+
+  // Debounce timer refs
+  const projectDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const collectionDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
@@ -70,6 +84,87 @@ export const Sidebar: React.FC = () => {
     loadRequest(req);
     useCollectionStore.getState().openRequestView();
   };
+
+  // Rename handlers with debounce
+  const startEditProject = (project: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingProjectId(project.id);
+    setEditingName(project.name);
+  };
+
+  const startEditCollection = (collection: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCollectionId(collection.id);
+    setEditingName(collection.name);
+  };
+
+  const handleProjectNameChange = (projectId: string, newName: string) => {
+    setEditingName(newName);
+
+    // Clear existing timer
+    if (projectDebounceTimer.current) {
+      clearTimeout(projectDebounceTimer.current);
+    }
+
+    // Set new timer for auto-save
+    projectDebounceTimer.current = setTimeout(() => {
+      if (newName.trim() && newName !== projects.find(p => p.id === projectId)?.name) {
+        updateProject(projectId, { name: newName.trim() });
+        toast.success(t('toast.savedChanges') + ' ' + newName.trim());
+      }
+    }, 500);
+  };
+
+  const handleCollectionNameChange = (collectionId: string, newName: string) => {
+    setEditingName(newName);
+
+    // Clear existing timer
+    if (collectionDebounceTimer.current) {
+      clearTimeout(collectionDebounceTimer.current);
+    }
+
+    // Set new timer for auto-save
+    collectionDebounceTimer.current = setTimeout(() => {
+      if (newName.trim() && newName !== collections.find(c => c.id === collectionId)?.name) {
+        updateCollection(collectionId, { name: newName.trim() });
+        toast.success(t('toast.savedChanges') + ' ' + newName.trim());
+      }
+    }, 500);
+  };
+
+  const finishEditProject = () => {
+    if (projectDebounceTimer.current) {
+      clearTimeout(projectDebounceTimer.current);
+    }
+    if (editingProjectId && editingName.trim()) {
+      updateProject(editingProjectId, { name: editingName.trim() });
+    }
+    setEditingProjectId(null);
+    setEditingName('');
+  };
+
+  const finishEditCollection = () => {
+    if (collectionDebounceTimer.current) {
+      clearTimeout(collectionDebounceTimer.current);
+    }
+    if (editingCollectionId && editingName.trim()) {
+      updateCollection(editingCollectionId, { name: editingName.trim() });
+    }
+    setEditingCollectionId(null);
+    setEditingName('');
+  };
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (projectDebounceTimer.current) {
+        clearTimeout(projectDebounceTimer.current);
+      }
+      if (collectionDebounceTimer.current) {
+        clearTimeout(collectionDebounceTimer.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="w-full bg-surface border-r border-slate-700 flex flex-col h-full select-none">
@@ -137,9 +232,35 @@ export const Sidebar: React.FC = () => {
 
               <div className="flex items-center gap-2 p-3 pl-4 flex-1 overflow-hidden">
                 {expanded[proj.id] ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
-                <span className="font-bold text-slate-200 text-sm truncate">{proj.name}</span>
+                {editingProjectId === proj.id ? (
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => handleProjectNameChange(proj.id, e.target.value)}
+                    onBlur={finishEditProject}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') finishEditProject();
+                      if (e.key === 'Escape') {
+                        setEditingProjectId(null);
+                        setEditingName('');
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    className="bg-slate-800 border border-primary rounded px-2 py-0.5 text-sm text-slate-200 focus:outline-none flex-1 min-w-0"
+                    autoFocus
+                  />
+                ) : (
+                  <span className="font-bold text-slate-200 text-sm truncate">{proj.name}</span>
+                )}
               </div>
               <div className="flex items-center pr-2 gap-1">
+                <button
+                  onClick={(e) => startEditProject(proj, e)}
+                  className="p-1.5 text-slate-500 hover:text-white rounded hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-all"
+                  title="Rename Project"
+                >
+                  <Edit2 size={14} />
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); openImportModal(proj.id); }}
                   className="p-1.5 text-slate-500 hover:text-white rounded hover:bg-slate-700 opacity-0 group-hover:opacity-100 transition-all"
@@ -212,9 +333,35 @@ export const Sidebar: React.FC = () => {
                       >
                         {expanded[col.id] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         <Archive size={14} className="shrink-0" style={{ color: col.color || '#94a3b8' }} />
-                        <span className="font-medium text-sm truncate">{col.name}</span>
+                        {editingCollectionId === col.id ? (
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => handleCollectionNameChange(col.id, e.target.value)}
+                            onBlur={finishEditCollection}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') finishEditCollection();
+                              if (e.key === 'Escape') {
+                                setEditingCollectionId(null);
+                                setEditingName('');
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-slate-800 border border-primary rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none flex-1 min-w-0"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className="font-medium text-sm truncate">{col.name}</span>
+                        )}
                       </div>
                       <div className="flex">
+                        <button
+                          onClick={(e) => startEditCollection(col, e)}
+                          className="text-slate-500 hover:text-white opacity-0 group-hover/col:opacity-100 p-1"
+                          title="Rename Collection"
+                        >
+                          <Edit2 size={12} />
+                        </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); openCollectionSettings(col.id); }}
                           className="text-slate-500 hover:text-primary opacity-0 group-hover/col:opacity-100 p-1"

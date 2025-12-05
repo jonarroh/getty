@@ -31,8 +31,11 @@ const hexToRgb = (hex: string): string => {
 interface SettingsState {
 	themes: Theme[];
 	activeThemeId: string;
+	language: string;
 	setTheme: (id: string) => void;
+	setLanguage: (lang: string) => void;
 	updateThemes: (themes: Theme[]) => void;
+	syncDefaultThemes: () => void;
 	applyThemeToDom: () => void;
 }
 
@@ -88,6 +91,19 @@ const defaultThemes: Theme[] = [
 			danger: '#ef4444',
 			warning: '#fbbf24'
 		}
+	},
+	{
+		id: 'light-purple',
+		name: 'Light Purple',
+		colors: {
+			background: '#F9FAFB',
+			surface: '#FFFFFF',
+			primary: '#7C3AED',
+			secondary: '#1F2937',
+			accent: '#F59E0B',
+			danger: '#DC2626',
+			warning: '#F59E0B'
+		}
 	}
 ];
 
@@ -96,15 +112,39 @@ export const useSettingsStore = create<SettingsState>()(
 		(set, get) => ({
 			themes: defaultThemes,
 			activeThemeId: 'midnight-purple',
+			language: 'en',
 
 			setTheme: (id: string) => {
 				set({ activeThemeId: id });
 				get().applyThemeToDom();
 			},
 
+			setLanguage: (lang: string) => {
+				set({ language: lang });
+			},
+
 			updateThemes: (themes: Theme[]) => {
+				console.log('Store: updateThemes called with:', themes);
 				set({ themes });
 				get().applyThemeToDom();
+			},
+
+			// Método para sincronizar con los temas por defecto
+			syncDefaultThemes: () => {
+				const currentThemes = get().themes;
+				const themeIds = new Set(currentThemes.map(t => t.id));
+				const newThemes = [...currentThemes];
+
+				// Agregar temas por defecto que no existan
+				defaultThemes.forEach(defaultTheme => {
+					if (!themeIds.has(defaultTheme.id)) {
+						newThemes.push(defaultTheme);
+					}
+				});
+
+				if (newThemes.length !== currentThemes.length) {
+					set({ themes: newThemes });
+				}
 			},
 
 			applyThemeToDom: () => {
@@ -113,33 +153,58 @@ export const useSettingsStore = create<SettingsState>()(
 					themes.find(t => t.id === activeThemeId) || themes[0];
 				const { colors } = activeTheme;
 
+				console.log(
+					'Store: Applying theme to DOM:',
+					activeTheme.name,
+					colors
+				);
+
 				const root = document.documentElement;
-				root.style.setProperty('--c-bg', hexToRgb(colors.background));
+				root.style.setProperty(
+					'--c-bg',
+					hexToRgb(colors.background),
+					'important'
+				);
 				root.style.setProperty(
 					'--c-surface',
-					hexToRgb(colors.surface)
+					hexToRgb(colors.surface),
+					'important'
 				);
 				root.style.setProperty(
 					'--c-primary',
-					hexToRgb(colors.primary)
+					hexToRgb(colors.primary),
+					'important'
 				);
 				root.style.setProperty(
 					'--c-secondary',
-					hexToRgb(colors.secondary)
+					hexToRgb(colors.secondary),
+					'important'
 				);
-				root.style.setProperty('--c-accent', hexToRgb(colors.accent));
-				root.style.setProperty('--c-danger', hexToRgb(colors.danger));
+				root.style.setProperty(
+					'--c-accent',
+					hexToRgb(colors.accent),
+					'important'
+				);
+				root.style.setProperty(
+					'--c-danger',
+					hexToRgb(colors.danger),
+					'important'
+				);
 				root.style.setProperty(
 					'--c-warning',
-					hexToRgb(colors.warning)
+					hexToRgb(colors.warning),
+					'important'
 				);
+
+				console.log('✅ Theme applied successfully!');
 			}
 		}),
 		{
 			name: 'settings',
 			partialize: state => ({
 				themes: state.themes,
-				activeThemeId: state.activeThemeId
+				activeThemeId: state.activeThemeId,
+				language: state.language
 			})
 		}
 	)
@@ -232,16 +297,19 @@ interface RequestState {
 	response: HttpResponse | null;
 	error: string | null;
 	isResponseDrawerOpen: boolean;
-	activeTab: 'params' | 'headers' | 'body';
+	activeTab: 'params' | 'headers' | 'cookies' | 'body';
 
 	setMethod: (method: HttpRequest['method']) => void;
 	setUrl: (url: string) => void;
 	setHeaders: (headers: KeyValuePair[]) => void;
 	setParams: (params: KeyValuePair[]) => void;
+	setCookies: (cookies: KeyValuePair[]) => void;
 	setBody: (body: string) => void;
 	setBodyType: (type: HttpRequest['bodyType']) => void;
 	setResponseDrawerOpen: (isOpen: boolean) => void;
-	setActiveTab: (tab: 'params' | 'headers' | 'body') => void;
+	setActiveTab: (
+		tab: 'params' | 'headers' | 'cookies' | 'body'
+	) => void;
 
 	loadRequest: (req: HttpRequest) => void;
 	updateActiveRequestName: (name: string) => void;
@@ -270,6 +338,7 @@ const defaultRequest: HttpRequest = {
 		}
 	],
 	params: [],
+	cookies: [],
 	bodyType: 'json',
 	body: '{\n\t\n}'
 };
@@ -302,6 +371,11 @@ export const useRequestStore = create<RequestState>((set, get) => ({
 			activeRequest: { ...state.activeRequest, params }
 		})),
 
+	setCookies: (cookies: KeyValuePair[]) =>
+		set(state => ({
+			activeRequest: { ...state.activeRequest, cookies }
+		})),
+
 	setBody: (body: string) =>
 		set(state => ({
 			activeRequest: { ...state.activeRequest, body }
@@ -315,7 +389,7 @@ export const useRequestStore = create<RequestState>((set, get) => ({
 	setResponseDrawerOpen: (isOpen: boolean) =>
 		set({ isResponseDrawerOpen: isOpen }),
 
-	setActiveTab: (tab: 'params' | 'headers' | 'body') =>
+	setActiveTab: (tab: 'params' | 'headers' | 'cookies' | 'body') =>
 		set({ activeTab: tab }),
 
 	loadRequest: (req: HttpRequest) =>
@@ -498,10 +572,24 @@ export const useRequestStore = create<RequestState>((set, get) => ({
 				? resolveVars(activeRequest.body)
 				: undefined;
 
+			// Procesar cookies
+			const finalCookies: Record<string, string> = {};
+			if (activeRequest.cookies) {
+				activeRequest.cookies.forEach(c => {
+					if (c.enabled && c.key) {
+						finalCookies[resolveVars(c.key)] = resolveVars(c.value);
+					}
+				});
+			}
+
 			const res = await invokeHttp({
 				method: activeRequest.method,
 				url: urlObj.toString(),
 				headers: finalHeaders,
+				cookies:
+					Object.keys(finalCookies).length > 0
+						? finalCookies
+						: undefined,
 				body: processedBody
 			});
 
@@ -529,12 +617,17 @@ interface CollectionState {
 	importTargetProjectId: string | null;
 
 	createProject: (name: string, color: string) => void;
+	updateProject: (id: string, updates: Partial<Project>) => void;
 	deleteProject: (id: string) => void;
 
 	createCollection: (
 		name: string,
 		projectId: string,
 		color?: string
+	) => void;
+	updateCollection: (
+		id: string,
+		updates: Partial<Collection>
 	) => void;
 	importCollection: (projectId: string, jsonContent: any) => void;
 	deleteCollection: (id: string) => void;
@@ -566,7 +659,7 @@ interface CollectionState {
 
 export const useCollectionStore = create<CollectionState>()(
 	persist(
-		(set, get) => ({
+		(set, _get) => ({
 			projects: [
 				{
 					id: 'default-project',
@@ -584,6 +677,13 @@ export const useCollectionStore = create<CollectionState>()(
 			createProject: (name: string, color: string) =>
 				set(state => ({
 					projects: [...state.projects, { id: uuidv4(), name, color }]
+				})),
+
+			updateProject: (id: string, updates: Partial<Project>) =>
+				set(state => ({
+					projects: state.projects.map(p =>
+						p.id === id ? { ...p, ...updates } : p
+					)
 				})),
 
 			deleteProject: (id: string) =>
@@ -621,6 +721,13 @@ export const useCollectionStore = create<CollectionState>()(
 							activeEnvironmentId: null
 						}
 					]
+				})),
+
+			updateCollection: (id: string, updates: Partial<Collection>) =>
+				set(state => ({
+					collections: state.collections.map(c =>
+						c.id === id ? { ...c, ...updates } : c
+					)
 				})),
 
 			importCollection: (projectId: string, jsonContent: any) =>

@@ -1,33 +1,29 @@
 @import 'tailwindcss';
 
+/* Theme variables are set dynamically by JavaScript - see store/index.ts */
+:root {
+	/* Default fallback values - will be overridden by theme system */
+	--c-bg: 19 17 28;
+	--c-surface: 31 27 46;
+	--c-primary: 168 85 247;
+	--c-secondary: 148 163 184;
+	--c-accent: 249 115 22;
+	--c-danger: 239 68 68;
+	--c-warning: 245 158 11;
+}
+
 @theme {
-	--color-background: rgb(255 255 255);
-	--color-surface: rgb(249 250 251);
-	--color-primary: rgb(59 130 246);
-	--color-secondary: rgb(107 114 128);
-	--color-accent: rgb(168 85 247);
-	--color-danger: rgb(239 68 68);
-	--color-warning: rgb(234 179 8);
+	/* Connect Tailwind colors to our dynamic CSS variables */
+	--color-background: rgb(var(--c-bg));
+	--color-surface: rgb(var(--c-surface));
+	--color-primary: rgb(var(--c-primary));
+	--color-secondary: rgb(var(--c-secondary));
+	--color-accent: rgb(var(--c-accent));
+	--color-danger: rgb(var(--c-danger));
+	--color-warning: rgb(var(--c-warning));
 
 	--font-family-sans: 'Inter', sans-serif;
 	--font-family-mono: 'JetBrains Mono', monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-	@theme {
-		--color-background: rgb(17 24 39);
-		--color-surface: rgb(31 41 55);
-	}
-}
-
-:root {
-	--c-bg: 19 17 28; /* Dark Purple-Black #13111C */
-	--c-surface: 31 27 46; /* Lighter Purple #1F1B2E */
-	--c-primary: 168 85 247; /* Purple 500 #A855F7 */
-	--c-secondary: 148 163 184; /* Slate 400 #94A3B8 */
-	--c-accent: 249 115 22; /* Orange 500 #F97316 */
-	--c-danger: 239 68 68; /* Red 500 #EF4444 */
-	--c-warning: 245 158 11; /* Amber 500 #F59E0B */
 }
 
 /* Custom scrollbar for webkit */

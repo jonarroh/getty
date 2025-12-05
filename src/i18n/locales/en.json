@@ -1,0 +1,130 @@
+{
+	"app": {
+		"title": "Getty",
+		"settings": "Settings"
+	},
+	"request": {
+		"method": "Method",
+		"url": "URL",
+		"send": "Send",
+		"sending": "Sending...",
+		"save": "Save",
+		"newRequest": "New Request",
+		"copyCurl": "Copy as cURL",
+		"importCurl": "Import cURL",
+		"pasteCurl": "Paste cURL command:"
+	},
+	"tabs": {
+		"params": "Params",
+		"headers": "Headers",
+		"cookies": "Cookies",
+		"body": "Body"
+	},
+	"response": {
+		"title": "Response",
+		"noResponse": "No response yet.",
+		"error": "Request Failed",
+		"copy": "Copy",
+		"copied": "Copied!",
+		"body": "Body",
+		"preview": "Preview"
+	},
+	"environment": {
+		"title": "Environment",
+		"noEnvironment": "No Environment",
+		"global": "Global",
+		"collection": "Collection",
+		"configure": "Configure one to use variables",
+		"available": "Available environments"
+	},
+	"settings": {
+		"title": "General Settings",
+		"subtitle": "Configure themes, appearance, and default preferences.",
+		"exportConfig": "Export Config",
+		"visualEditor": "Visual Editor",
+		"jsonEditor": "JSON Editor",
+		"appearance": "Appearance",
+		"activeTheme": "Active Theme",
+		"active": "Active",
+		"customize": "Customize",
+		"colors": "Colors",
+		"showEditor": "Show Editor",
+		"hideEditor": "Hide Editor",
+		"tip": "Tip",
+		"tipText": "Switch to JSON Editor to add new themes or make advanced modifications. You can also export your configuration to share with others.",
+		"done": "Done",
+		"cancel": "Cancel",
+		"apply": "Apply Changes",
+		"editJson": "Edit the JSON below to manage themes. You can add new themes to the list.",
+		"language": "Language",
+		"selectLanguage": "Select Language"
+	},
+	"sidebar": {
+		"workspace": "Workspace",
+		"collections": "Collections",
+		"newCollection": "New Collection",
+		"newRequest": "New Request"
+	},
+	"common": {
+		"name": "Name",
+		"value": "Value",
+		"key": "Key",
+		"enabled": "Enabled",
+		"addRow": "Add Row",
+		"delete": "Delete",
+		"edit": "Edit",
+		"close": "Close",
+		"save": "Save",
+		"cancel": "Cancel"
+	},
+	"toast": {
+		"curlCopied": "cURL copied to clipboard!",
+		"savedChanges": "Saved changes to",
+		"requestSaved": "Request saved successfully!",
+		"selectCollection": "Please select a collection.",
+		"envCreated": "Environment created successfully!",
+		"envDeleted": "Environment deleted successfully!",
+		"curlImported": "cURL imported successfully!",
+		"invalidCurl": "Invalid cURL command"
+	},
+	"modals": {
+		"newEnvironment": "New Environment",
+		"deleteEnvironment": "Delete Environment",
+		"environmentName": "Environment Name",
+		"create": "Create",
+		"delete": "Delete",
+		"cancel": "Cancel",
+		"deleteConfirm": "Are you sure you want to delete the environment",
+		"deleteWarning": "This action cannot be undone.",
+		"importCurl": "Import cURL",
+		"importCurlPlaceholder": "curl -X GET https://api.example.com/users",
+		"importCurlHelp": "Paste a cURL command and it will be converted to a request",
+		"import": "Import",
+		"saveRequest": "Save Request",
+		"requestName": "Request Name",
+		"selectProject": "Select Project",
+		"selectCollection": "Select Collection",
+		"chooseCollection": "-- Choose Collection --",
+		"noCollections": "No collections in this project.",
+		"save": "Save"
+	},
+	"environmentManager": {
+		"title": "Manage Environments",
+		"newEnv": "+ New Env",
+		"active": "Active",
+		"setActive": "Set Active",
+		"delete": "Delete",
+		"variables": "Variables",
+		"sharedHeaders": "Shared Headers",
+		"selectEnvironment": "Select an environment",
+		"variablesHelp": "Variables globales disponibles en todas las colecciones.",
+		"headersHelp": "Headers globales que se agregarán a todas las peticiones."
+	},
+	"collectionPanel": {
+		"title": "Configure environments and variables for this collection.",
+		"backToRequests": "Back to Requests",
+		"noEnvironments": "No environments configured.",
+		"createFirst": "Create your first environment to get started.",
+		"selectTab": "Select or create a tab to configure variables."
+	}
+}

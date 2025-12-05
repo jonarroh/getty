@@ -1,7 +1,7 @@
 import { StateCreator, StoreMutatorIdentifier } from 'zustand';
 import { saveToDb, loadFromDb } from '../lib/tauri';
 
-type PersistListener = () => void;
+// type PersistListener = () => void; // Unused for now
 
 interface PersistOptions {
 	name: string; // Nombre de la tabla en SQLite
@@ -34,13 +34,15 @@ const persistImpl: PersistImpl =
 		} = options;
 
 		let isHydrating = true;
-		let saveTimeout: NodeJS.Timeout | null = null;
+		let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 		let isSaving = false;
 
 		// Configurar el estado inicial
 		const initialState = config(
-			(...args) => {
-				set(...args);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			(...args: any[]) => {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(set as any)(...args);
 				if (!isHydrating) {
 					// Persistir con debounce para evitar múltiples escrituras
 					debouncedPersist();

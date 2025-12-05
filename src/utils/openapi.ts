@@ -258,6 +258,7 @@ export const parseOpenApi = (json: any): OpenApiImportResult => {
 							url: `{{baseUrl}}${path}`,
 							headers,
 							params,
+							cookies: [],
 							bodyType,
 							body
 						};

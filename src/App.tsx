@@ -10,19 +10,31 @@ import { ResizableSplit } from './components/ResizableSplit';
 import { TitleBar } from './components/TitleBar';
 import { Zap, Settings, Palette } from 'lucide-react';
 import { useSettingsStore, useCollectionStore, useRequestStore } from './store';
+import { useTranslation } from 'react-i18next';
+import { Toaster } from 'sonner';
 import clsx from 'clsx';
 import './App.css';
 
 const App: React.FC = () => {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const { applyThemeToDom, themes, activeThemeId, setTheme } = useSettingsStore();
+  const { applyThemeToDom, themes, activeThemeId, language, setTheme } = useSettingsStore();
   const { viewMode } = useCollectionStore();
   const { isResponseDrawerOpen } = useRequestStore();
+  const { t, i18n } = useTranslation();
 
-  // Initialize theme on mount
+  // Apply theme on mount and when theme/colors change
   useEffect(() => {
+    console.log('Applying theme:', activeThemeId);
     applyThemeToDom();
-  }, []);
+  }, [activeThemeId, themes, applyThemeToDom]);
+
+  // Sync language when it changes in the store
+  useEffect(() => {
+    if (language && i18n.language !== language) {
+      console.log('Syncing language to:', language);
+      i18n.changeLanguage(language);
+    }
+  }, [language, i18n]);
 
   // Main Content Component based on View Mode
   const MainContent = () => {
@@ -51,6 +63,17 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen text-slate-200 font-sans">
+      <Toaster
+        position="top-right"
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'rgb(31 41 55)',
+            border: '1px solid rgb(55 65 81)',
+            color: 'rgb(226 232 240)',
+          },
+        }}
+      />
       <ConfigModal isOpen={isConfigOpen} onClose={() => setIsConfigOpen(false)} />
       <ImportModal />
 
@@ -90,7 +113,7 @@ const App: React.FC = () => {
           <button
             onClick={() => setIsConfigOpen(true)}
             className="text-slate-400 hover:text-white transition-colors"
-            title="Settings / Edit Themes"
+            title={t('app.settings')}
           >
             <Settings size={18} />
           </button>
